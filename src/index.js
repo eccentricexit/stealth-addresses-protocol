@@ -22,38 +22,45 @@ const rKeys = ec.keyFromSecret("rKeys");
 const r = rKeys.priv();
 const R = rKeys.pub();
 
-// || is concatenation
-//P = H(r*A || n)*G+B //cryptonote standard
 //P = H(r*A)*G+B      //cryptonote whitepaper
 //Alice signs a transaction sending S tokens to
 //P address. She also includes R in the
 //transaction.
 
-//whitepaper naive implementation (P = H(r*A)*G+B )
-let P = [A.x.mul(r),A.y.mul(r)];
-P = '0x'+H(utils.toBuffer(P)).toString();
-P = new BN(P);
-P = [G[0].mul(P),G[1].mul(P)];
-P[0] = B.x.add(P[0]);
-P[1] = B.y.add(P[1]);
-
-
-//Bob checks every transaction by calculating
-//P' with his a key. If P' == P, he is
-//the recipient of that transaction.
-//P' = H(a*R||n)*G+B //cryptonote standards
-//P' = H(aR)G+bG     //cryptonote whitepaper
-
-let _P = [R.x.mul(a),R.y.mul(a)]; //a*R;
-_P ='0x'+H(utils.toBuffer(_P)).toString(); //H(a*R)
-_P = new BN(_P);
-_P = [G[0].mul(_P),G[1].mul(_P)];
-const bTimesG = [G[0].mul(b),G[1].mul(b)];
-_P = [P[0].add(bTimesG[0]),P[1].add(bTimesG[1])];
+//whitepaper implementation (P = H(r*A)*G+B )
+let P = A.mul(r);
+P = H(P.toString());
+P = ec.g.mul(new BN(P));
+P = P.add(B);
 
 console.log(P);
-console.log(_P);
 
+//Bob checks every transaction by calculating
+//P' with his private a key. If P' == P, he is
+//the recipient of that transaction.
+//P' = H(aR)G+bG     //cryptonote whitepaper
+
+let _P = R.mul(a);
+_P = H(_P.toString());
+_P = ec.g.mul(new BN(_P));
+_P = _P.add(ec.g.mul(b));
+
+console.log(_P);
+//Bob sees that P == _P so he knows he is the recipient
+//of that transaction. He can calculate _P private key
+//using his private keys a and b
+//p = H(aR)+b
+
+let _p = R.mul(a).toString();
+_p = new BN(H(_p).toString()).add(b);
+
+let pKey = ec.keyFromSecret(_p);
+
+//testing private key...
+const msg = "there is no spoon.";
+const msgHash = H(msg);
+const signature = pKey.sign(msgHash).toHex();
+console.log(pKey.verify(msgHash, signature));
 
 function H(input){
   return keccakHash('keccak256').update(input).digest('hex');
