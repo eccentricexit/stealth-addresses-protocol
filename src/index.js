@@ -21,12 +21,16 @@ const r = rKeys.priv();
 const R = rKeys.pub();
 
 //Voter computes P with Candidate X's public keys
-//P=H(rA)G+B
+//P=H(rA)G+B    per CN paper
+//P=H(rA||n)G+B per cns006, where || is concatenation and n is the index of the
+//tx encoded as varint.
 const P = ec.g.mul(new BN(H(A.mul(r).encode('hex')))).add(B).encode('hex');
 //and signs a transaction to P, publishing R.
 
 //Candidate X checks every transaction
-//_P=H(aR)G+B
+//_P=H(aR)G+B // whitepaper
+//P=H(aR||n)G+B per cns006, where || is concatenation and n is the index of the
+//tx encoded as varint.
 const _P = ec.g.mul(new BN(H(R.mul(a).encode('hex')))).add(B).encode('hex');
 //Once he finds _P == P he knows he is the recipient of that vote
 console.log(P===_P);
