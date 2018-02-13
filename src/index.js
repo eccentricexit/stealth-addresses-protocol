@@ -8,15 +8,15 @@ const ec = new EdDSA('ed25519');
 const G = [ec.g.x,ec.g.y];
 
 //Candidate X keys publishes A and B
-const aKeys = ec.keyFromSecret(random256Number());
+const aKeys = ec.keyFromSecret('candidatexsecreta');
 const a = aKeys.priv();
 const A = aKeys.pub();
-const bKeys = ec.keyFromSecret(random256Number());
+const bKeys = ec.keyFromSecret('candidatexsecretb');
 const b = bKeys.priv();
 const B = bKeys.pub();
 
 //Voter computes a random key
-const rKeys = ec.keyFromSecret(random256Number());
+const rKeys = ec.keyFromSecret('voterrandomsecret');
 const r = rKeys.priv();
 const R = rKeys.pub();
 
@@ -43,8 +43,4 @@ console.log(ec.g.mul(_p).encode('hex')===_P);
 
 function H(input){
   return keccakHash('keccak256').update(input).digest('hex');
-}
-
-function random256Number(){
-  return crypto.randomBytes(32).toString('hex');
 }
