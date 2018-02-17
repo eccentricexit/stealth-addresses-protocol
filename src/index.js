@@ -37,6 +37,7 @@ console.log(P===_P);
 
 //He can calculate the corresponding private key _p using his private keys
 //_p = H(aR) + b
+//Mechanisms should of course be in place to prevent him from 'spending' his votes
 const _p = new BN(H(R.mul(a).encode('hex'))).add(b);
 console.log(ec.g.mul(_p).encode('hex')===_P);
 
